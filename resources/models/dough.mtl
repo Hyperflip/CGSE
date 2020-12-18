@@ -1,0 +1,13 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl Dough
+Ns 304.661138
+Ka 1.000000 1.000000 1.000000
+Kd 0.286262 0.165890 0.097498
+Ks 0.463636 0.463636 0.463636
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\phili\\Desktop\\Blender Projekte\\2.8 kickoff\\texture_new.png
