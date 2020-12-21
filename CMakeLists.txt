@@ -33,5 +33,8 @@ target_link_libraries(${PROJECT_NAME} "glad" "${CMAKE_DL_LIBS}")
 # linmath
 include_directories("${LIB_DIR}/linmath")
 
+# OBJ-loader
+include_directories("${LIB_DIR}/obj_loader")
+
 
 
