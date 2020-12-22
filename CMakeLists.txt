@@ -5,7 +5,7 @@ project(CGSE)
 # source files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
-set(SOURCES "${SRC_DIR}/main.cpp")
+set(SOURCES "${SRC_DIR}/main.cpp" source/shader.h source/shader.cpp)
 
 # executable definition and properties
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -35,6 +35,9 @@ include_directories("${LIB_DIR}/linmath")
 
 # OBJ-loader
 include_directories("${LIB_DIR}/obj_loader")
+
+# stb_image
+include_directories("${LIB_DIR}/stb_image")
 
 
 
