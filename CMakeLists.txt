@@ -30,6 +30,9 @@ target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLAD_DIR}/include")
 target_link_libraries(${PROJECT_NAME} "glad" "${CMAKE_DL_LIBS}")
 
+# glm
+include_directories("${LIB_DIR}/glm")
+
 # linmath
 include_directories("${LIB_DIR}/linmath")
 

@@ -4,6 +4,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 
 #include "shader.h"
@@ -209,6 +213,9 @@ int main() {
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 
+	// location of the transform uniform in the vertex shader
+	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+
     // RENDER LOOP
     while(!glfwWindowShouldClose(window)) {
         // input
@@ -219,6 +226,15 @@ int main() {
         // clear colors:
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        shader.use();
+
+        // creating a transformation matrix
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.0));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+		// setting the value of the transform uniform
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         /*
         a texture object can hold multiple texture units,
