@@ -24,6 +24,9 @@ void processInput(GLFWwindow* window) {
     }
 }
 
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -32,7 +35,7 @@ int main() {
     // macOS specific
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "CGSE", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "CGSE", NULL, NULL);
     if(window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -45,8 +48,11 @@ int main() {
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // enable depth test (z-buffer)
+    glEnable(GL_DEPTH_TEST);
 
     // building the shader from the vertex and fragment shader paths
     Shader shader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
@@ -57,7 +63,7 @@ int main() {
     */
 
     // vertex data of a rectangle
-	float vertices[] = {
+	float verticesTriangle[] = {
 			 // positions       // colors         // texture coords
 			 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 	// top right
 			 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 	// bottom right
@@ -70,6 +76,128 @@ int main() {
 			0, 1, 3, // first triangle
 			1, 2, 3  // second triangle
 	};
+
+	// vertices of a cube
+	float vertices[] = {
+			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+			0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+	// world space positions of 10 cubes
+	glm::vec3 cubePositions[] = {
+			glm::vec3( 0.0f,  0.0f,  0.0f),
+			glm::vec3( 2.0f,  5.0f, -15.0f),
+			glm::vec3(-1.5f, -2.2f, -2.5f),
+			glm::vec3(-3.8f, -2.0f, -12.3f),
+			glm::vec3( 2.4f, -0.4f, -3.5f),
+			glm::vec3(-1.7f,  3.0f, -7.5f),
+			glm::vec3( 1.3f, -2.0f, -2.5f),
+			glm::vec3( 1.5f,  2.0f, -2.5f),
+			glm::vec3( 1.5f,  0.2f, -1.5f),
+			glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
+	// VERTEX DATA BINDING AND CONFIGURATION
+	/*
+	VBO: vertex buffer object, source of the vertex array data
+	VAO: vertex array object,
+	hold the data about the state needed to describe the vertex array data
+	EBO: element buffer object. for when indexed drawing is used,
+	(telling OpenGL the indices for the desired vertices, which are stored in a buffer)
+	*/
+	unsigned int VBO, VAO, EBO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+	/*
+	1) bind the VAO
+	2) bind and set the VBO(s) or EBO(s)
+	3) configure vertex attributes
+	*/
+
+	// 1)
+	glBindVertexArray(VAO);
+
+	// 2a)
+	// bind the VBO to the array buffer
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// copy the buffer data into the array buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// 2b)
+	// NOTE: element array buffer
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	// copy data to buffer and specify the vertex indices
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// 3)
+	/*
+	configuring (linking) the vertex attributes
+	WHY?: because OpenGL doesn't know how to input into the vertes shader PER SE
+	the vertex buffer (VBO from above) is formatted as follows:
+	x   y   z   r   g   b	s	t	x   y   z   r   g   b	s	t   ...
+	vert1                   		vert2                   		vertn
+	*/
+
+	/* position attribute
+	location = 0 (first argument),
+	starts at pos 0 of each vertex (last argument)
+	*/
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+						  (void*)0);
+	// 0 means location = 0 aka aPos in the shader
+	glEnableVertexAttribArray(0);
+
+	// uv attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+						  (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	/*
+	unbind VAO and VBO (binding to 0)
+	this will allow the configuration of other VAOs/VBOs, since configuration
+	only works on the currently bound VAO/VBO.
+	NOTE: this is not necessary
+	HINT: something something state machine
+
+	DON'T unbind EBO while VAO is active, as the bound element array buffer is stored in the active VAO
+	again: unbinding means binding to 0: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	*/
+	glBindBuffer(GL_ARRAY_BUFFER, 0);   // unbind VBO
+	glBindVertexArray(0);               // unbind VAO
 
     // generating TEXTURE
     unsigned int texture1, texture2;
@@ -118,93 +246,6 @@ int main() {
 	}
 	stbi_image_free(data);
 
-
-	// VERTEX DATA BINDING AND CONFIGURATION
-    /*
-    VBO: vertex buffer object, source of the vertex array data
-    VAO: vertex array object,
-    hold the data about the state needed to describe the vertex array data
-    EBO: element buffer object. for when indexed drawing is used,
-    (telling OpenGL the indices for the desired vertices, which are stored in a buffer)
-    */
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    /*
-    1) bind the VAO
-    2) bind and set the VBO(s) or EBO(s)
-    3) configure vertex attributes
-    */
-
-    // 1)
-    glBindVertexArray(VAO);
-
-    // 2a)
-    // bind the VBO to the array buffer
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // copy the buffer data into the array buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // 2b)
-    // NOTE: element array buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    // copy data to buffer and specify the vertex indices
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // 3)
-    /*
-    configuring (linking) the vertex attributes
-    WHY?: because OpenGL doesn't know how to input into the vertes shader PER SE
-    the vertex buffer (VBO from above) is formatted as follows:
-    x   y   z   r   g   b	s	t	x   y   z   r   g   b	s	t   ...
-    vert1                   		vert2                   		vertn
-    that means:
-    * the vertices start at the very beginning of the buffer (pos 0)
-    * a vertex has position, color and uv attributes, then follows the next vertex
-    * each field is a 4 byte float value
-    * each vertex consists of 8 of those values
-    */
-
-    /* position attribute
-    location = 0 (first argument),
-    starts at pos 0 of each vertex (last argument)
-    */
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void*)0);
-    // 0 means location = 0 aka aPos in the shader
-    glEnableVertexAttribArray(0);
-    /* color attribute
-    location = 1 (first argument),
-    starts at pos 3 of each vertex (last argument)
-    */
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void*)(3 * sizeof(float)));
-    // 1 means location = 1 aka aColor in the shader
-    glEnableVertexAttribArray(1);
-	/* uv attribute
-	location = 2 (first argument),
-	consists of 2 values
-	starts at pos 6 of each vertex (last argument)
-	*/
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-						  (void*)(6 * sizeof(float)));
-	// 1 means location = 2 aka aTexCoord in the shader
-	glEnableVertexAttribArray(2);
-
-    /*
-    unbind VAO and VBO (binding to 0)
-    this will allow the configuration of other VAOs/VBOs, since configuration
-    only works on the currently bound VAO/VBO.
-    NOTE: this is not necessary
-    HINT: something something state machine
-
-    DON'T unbind EBO while VAO is active, as the bound element array buffer is stored in the active VAO
-    again: unbinding means binding to 0: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    */
-    glBindBuffer(GL_ARRAY_BUFFER, 0);   // unbind VBO
-    glBindVertexArray(0);               // unbind VAO
-
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -212,9 +253,6 @@ int main() {
 	// setting the textures to the corresponding samplers in the shader
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
-
-	// location of the transform uniform in the vertex shader
-	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
 
     // RENDER LOOP
     while(!glfwWindowShouldClose(window)) {
@@ -225,34 +263,46 @@ int main() {
 
         // clear colors:
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		/*
+		a texture object can hold multiple texture units,
+		for this image, two textures need to be loaded
+		*/
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		// shader needs to be activated before accessing its uniforms
         shader.use();
-
-        // creating a transformation matrix
-		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.0));
-		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
-		// setting the value of the transform uniform
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
         /*
-        a texture object can hold multiple texture units,
-        for this image, two textures need to be loaded
+        create transformations
+        1) model = local to world space
+        2) view = world to view space
+        3) projection = view to clip space
         */
-        glActiveTexture(GL_TEXTURE0);
-        // binding texture1
-        glBindTexture(GL_TEXTURE_2D, texture1);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
+		// set uniforms (via self-implemented helper functions)
+		shader.setMat4("view", view);
+		shader.setMat4("projection", projection);
 
-        glActiveTexture(GL_TEXTURE1);
-        // binding texture 2
-        glBindTexture(GL_TEXTURE_2D, texture2);
+		// binding the only VAO in this program every frame is technically not necessary
+		glBindVertexArray(VAO);
 
-        // binding the only VAO in this program every frame is technically not necessary
-        glBindVertexArray(VAO);
+		// iterate over 10 cube positions and calculate corresponding model matrix
+		for(unsigned int i = 0; i < 10; i++) {
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			shader.setMat4("model", model);
 
-        // drawing in indexed mode
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
         // glBindVertexArray(0); // no need to unbind VAO every time
 
