@@ -13,19 +13,23 @@
 #include "shader.h"
 
 // callback function when viewport gets resized
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // input handler
-void processInput(GLFWwindow* window) {
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
+void processInput(GLFWwindow* window);
 
+// settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+// camera
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+
+// timing
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 int main() {
     glfwInit();
@@ -254,9 +258,24 @@ int main() {
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 
-    // RENDER LOOP
-    while(!glfwWindowShouldClose(window)) {
-        // input
+	/*
+	relevant transformation matrices
+	1) model = local to world space
+	2) view = world to view space
+	3) projection = view to clip space
+	*/
+	// pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
+	shader.setMat4("projection", projection);
+	// RENDER LOOP
+	while(!glfwWindowShouldClose(window)) {
+
+		// per-frame time logic
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		// input
         processInput(window);
 
         // rendering commands here:
@@ -276,19 +295,11 @@ int main() {
 
 		// shader needs to be activated before accessing its uniforms
         shader.use();
-        /*
-        create transformations
-        1) model = local to world space
-        2) view = world to view space
-        3) projection = view to clip space
-        */
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 projection = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
+
+		// the lookAt matrix transforms every objects coordinates to be in view of the camera
+		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		// set uniforms (via self-implemented helper functions)
 		shader.setMat4("view", view);
-		shader.setMat4("projection", projection);
 
 		// binding the only VAO in this program every frame is technically not necessary
 		glBindVertexArray(VAO);
@@ -313,4 +324,23 @@ int main() {
 
     glfwTerminate();
     return 0;
+}
+
+void processInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	float cameraSpeed = 2.5 * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
 }
