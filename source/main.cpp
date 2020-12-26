@@ -35,6 +35,11 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// lighting and materials
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+glm::vec3 objectColor = glm::vec3(1.0f, 0.5f, 0.31f);
+
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -79,6 +84,7 @@ int main() {
 
     // building the shader from the vertex and fragment shader paths
     Shader shader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
+	Shader lampShader("resources/shaders/lamp_shader.vs", "resources/shaders/lamp_shader.fs");
 
     /*
     normalized device coordinates (outside -1 to 1 will be clipped)
@@ -199,6 +205,22 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);   // unbind VBO
 	glBindVertexArray(0);               // unbind VAO
 
+	// LAMP CUBE VAO and VBO
+	unsigned int lampCubeVAO;
+	glGenVertexArrays(1, &lampCubeVAO);
+	glBindVertexArray(lampCubeVAO);
+
+	// just bind previous VBO (it's actually already bound from before)
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	/*
+	set offset to 5 * (sizeof)float as to skip vertex coordinates
+	(lamp does not have a texture, yet uses same vertex data array as cubes)
+	*/
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+
     // generating TEXTURE
     unsigned int texture1, texture2;
     glGenTextures(1, &texture1);
@@ -215,7 +237,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load and generate texture:
 	int width, height, nrChannels;
-	unsigned char* data = stbi_load("resources/textures/bamboo_wall.jpg", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("resources/textures/bricks/bricks_albedo.jpg", &width, &height, &nrChannels, 0);
 	if(data) {
 		// generating an RGB texture from the loaded data
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -223,7 +245,7 @@ int main() {
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {
-		std::cout << "Failed to load texture" << std::endl;
+		std::cout << "Failed to load texture0" << std::endl;
 	}
 	// free loaded image as it's now generated and bound
 	stbi_image_free(data);
@@ -234,15 +256,15 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-	data = stbi_load("resources/textures/creepy_smiley.png", &width, &height, &nrChannels, 0);
+	//stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+	data = stbi_load("resources/textures/bricks/bricks_diffuse.jpg", &width, &height, &nrChannels, 0);
 	if(data) {
-		// NOTE: loading as GL_RGBA, since png's contain alpha values
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		// NOTE: loading as GL_RGBA (7th argument) if loading a .png
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {
-		std::cout << "Failed to load texture" << std::endl;
+		std::cout << "Failed to load texture1" << std::endl;
 	}
 	stbi_image_free(data);
 
@@ -288,24 +310,33 @@ int main() {
 
 		// shader needs to be activated before accessing its uniforms
         shader.use();
+		shader.setVec3("objectColor", objectColor);
+		shader.setVec3("lightColor", lightColor);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		shader.setMat4("projection", projection);
-
 		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
-
-		// binding the only VAO in this program every frame is technically not necessary
+		// world position
+		glm::mat4 model = glm::mat4(1.0f);
 		glBindVertexArray(VAO);
-
-		// iterate over 10 cube positions and calculate corresponding model matrix
 		for(unsigned int i = 0; i < cubesCount; i++) {
-			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			shader.setMat4("model", model);
-
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
+
+		// lamp object
+		lampShader.use();
+		lampShader.setMat4("projection", projection);
+		lampShader.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
+		lampShader.setMat4("model", model);
+
+		glBindVertexArray(lampCubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // glBindVertexArray(0); // no need to unbind VAO every time
 
