@@ -6,7 +6,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+
+#include <camera.h>
 
 #include <iostream>
 
@@ -14,18 +15,21 @@
 
 // callback function when viewport gets resized
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
 // input handler
 void processInput(GLFWwindow* window);
+// mouse input handlers
+void mouse_callback(GLFWwindow* window, double xPos, double yPos);
+void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1600;
+const unsigned int SCR_HEIGHT = 1200;
 
 // camera
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_WIDTH / 2.0f;
+bool firstMouse = true;
 
 // timing
 float deltaTime = 0.0f;
@@ -36,8 +40,9 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // macOS specific
+#ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "CGSE", NULL, NULL);
     if(window == NULL) {
@@ -45,7 +50,17 @@ int main() {
         glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(window);
+
+    // correct mismatching window and viewport size
+    glfwSetWindowSize(window, SCR_WIDTH / 2, SCR_HEIGHT / 2);
+
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	// tell GLFW to capture our mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -58,6 +73,10 @@ int main() {
     // enable depth test (z-buffer)
     glEnable(GL_DEPTH_TEST);
 
+    // enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // building the shader from the vertex and fragment shader paths
     Shader shader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
 
@@ -65,21 +84,6 @@ int main() {
     normalized device coordinates (outside -1 to 1 will be clipped)
     these represent a triangle
     */
-
-    // vertex data of a rectangle
-	float verticesTriangle[] = {
-			 // positions       // colors         // texture coords
-			 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 	// top right
-			 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 	// bottom right
-			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 	// bottom left
-			-0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  	// top left
-	};
-
-	// indices for indexed drawing mode (drawing two triangles to represent one rectangle)
-	unsigned int indices[] = {
-			0, 1, 3, // first triangle
-			1, 2, 3  // second triangle
-	};
 
 	// vertices of a cube
 	float vertices[] = {
@@ -121,17 +125,9 @@ int main() {
 			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 	// world space positions of 10 cubes
+	int cubesCount = 1;
 	glm::vec3 cubePositions[] = {
 			glm::vec3( 0.0f,  0.0f,  0.0f),
-			glm::vec3( 2.0f,  5.0f, -15.0f),
-			glm::vec3(-1.5f, -2.2f, -2.5f),
-			glm::vec3(-3.8f, -2.0f, -12.3f),
-			glm::vec3( 2.4f, -0.4f, -3.5f),
-			glm::vec3(-1.7f,  3.0f, -7.5f),
-			glm::vec3( 1.3f, -2.0f, -2.5f),
-			glm::vec3( 1.5f,  2.0f, -2.5f),
-			glm::vec3( 1.5f,  0.2f, -1.5f),
-			glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 	// VERTEX DATA BINDING AND CONFIGURATION
@@ -264,9 +260,6 @@ int main() {
 	2) view = world to view space
 	3) projection = view to clip space
 	*/
-	// pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
-	shader.setMat4("projection", projection);
 	// RENDER LOOP
 	while(!glfwWindowShouldClose(window)) {
 
@@ -296,20 +289,19 @@ int main() {
 		// shader needs to be activated before accessing its uniforms
         shader.use();
 
-		// the lookAt matrix transforms every objects coordinates to be in view of the camera
-		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		// set uniforms (via self-implemented helper functions)
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		shader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 
 		// binding the only VAO in this program every frame is technically not necessary
 		glBindVertexArray(VAO);
 
 		// iterate over 10 cube positions and calculate corresponding model matrix
-		for(unsigned int i = 0; i < 10; i++) {
+		for(unsigned int i = 0; i < cubesCount; i++) {
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
-			float angle = 20.0f * i;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			shader.setMat4("model", model);
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -330,17 +322,41 @@ void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	float cameraSpeed = 2.5 * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraSpeed * cameraFront;
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * cameraFront;
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xOffset = xpos - lastX;
+	float yOffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xOffset, yOffset);
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }

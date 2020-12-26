@@ -33,14 +33,11 @@ target_link_libraries(${PROJECT_NAME} "glad" "${CMAKE_DL_LIBS}")
 # glm
 include_directories("${LIB_DIR}/glm")
 
-# linmath
-include_directories("${LIB_DIR}/linmath")
-
-# OBJ-loader
-include_directories("${LIB_DIR}/obj_loader")
-
 # stb_image
 include_directories("${LIB_DIR}/stb_image")
+
+# learnopengl camera
+include_directories("${LIB_DIR}/camera")
 
 
 
