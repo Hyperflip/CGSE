@@ -331,6 +331,8 @@ int main() {
 		shader.setVec3("objectColor", objectColor);
 		// set alpha val
 		shader.setFloat("alpha", alpha);
+		// pass cam pos
+		shader.setVec3("viewPos", camera.Position);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
