@@ -38,10 +38,16 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting and materials
+// lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 objectColor = glm::vec3(1.0f, 0.5f, 0.31f);
+glm::vec3 ambientIntensity(0.2f, 0.2f, 0.2f);
+glm::vec3 diffuseIntensity(0.5f, 0.5f, 0.5f);
+glm::vec3 specularIntensity(1.0f, 1.0f, 1.0f);
+
+// material
+glm::vec3 ambientColor = glm::vec3(1.0f, 0.5f, 0.31f);
+glm::vec3 diffuseColor = glm::vec3(1.0f, 0.5f, 0.31f);
+glm::vec3 specularColor = glm::vec3(0.5f, 0.5f, 0.5f);
 // transparency
 float alpha = 1.0f;
 
@@ -238,12 +244,13 @@ int main() {
 
 
     // generating TEXTURE
-    unsigned int texture1, texture2;
-    glGenTextures(1, &texture1);
-    glGenTextures(1, &texture2);
+    unsigned int ambientTexture, diffuseTexture, specularTexture;
+    glGenTextures(1, &ambientTexture);
+    glGenTextures(1, &diffuseTexture);
+    glGenTextures(1, &specularTexture);
 
     // FIRST TEXTURE
-    glBindTexture(GL_TEXTURE_2D, texture1);
+    glBindTexture(GL_TEXTURE_2D, ambientTexture);
     // set wrapping/filtering options (on the currently bound texture)
     // wrapping mode on S & T direction:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -267,7 +274,7 @@ int main() {
 	stbi_image_free(data);
 
 	// SECOND TEXTURE
-	glBindTexture(GL_TEXTURE_2D, texture2);
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -284,13 +291,32 @@ int main() {
 	}
 	stbi_image_free(data);
 
+	// THIRD TEXTURE
+	glBindTexture(GL_TEXTURE_2D, specularTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+	data = stbi_load("resources/textures/bricks/bricks_specular.jpg", &width, &height, &nrChannels, 0);
+	if(data) {
+		// NOTE: loading as GL_RGBA (7th argument) if loading a .png
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "Failed to load texture1" << std::endl;
+	}
+	stbi_image_free(data);
+
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	shader.use();
 	// setting the textures to the corresponding samplers in the shader
-	shader.setInt("texture1", 0);
-	shader.setInt("texture2", 1);
+	shader.setInt("material.ambient", 0);
+	shader.setInt("material.diffuse", 1);
+	shader.setInt("material.specular", 2);
 
 	/*
 	relevant transformation matrices
@@ -320,15 +346,24 @@ int main() {
 		for this image, two textures need to be loaded
 		*/
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+		glBindTexture(GL_TEXTURE_2D, ambientTexture);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, specularTexture);
 
 		// shader needs to be activated before accessing its uniforms
         shader.use();
-        shader.setVec3("lightPos", lightPos);
-		shader.setVec3("lightColor", lightColor);
-		shader.setVec3("objectColor", objectColor);
+        // lighting
+        shader.setVec3("light.position", lightPos);
+        shader.setVec3("light.ambient", ambientIntensity);
+        shader.setVec3("light.diffuse", diffuseIntensity);
+        shader.setVec3("light.specular", specularIntensity);
+        // material
+		shader.setVec3("material.ambient", ambientColor);
+		shader.setVec3("material.diffuse", diffuseColor);
+		shader.setVec3("material.specular", specularColor);
+		shader.setFloat("material.shininess", 32.0f);
 		// set alpha val
 		shader.setFloat("alpha", alpha);
 		// pass cam pos
