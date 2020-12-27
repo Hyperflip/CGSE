@@ -1,17 +1,23 @@
+// openGL
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-
+// image loading
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
+// linear algebra
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+// learnOpenGL implementations
 #include <camera.h>
-
+// self-written implementations
+#include "shader.h"
+#include "mesh.h"
+// standard libraries
 #include <iostream>
 
-#include "shader.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 // callback function when viewport gets resized
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
