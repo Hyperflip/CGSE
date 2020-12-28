@@ -139,8 +139,11 @@ unsigned int Model::TextureFromFile(const char *path, const std::string &directo
 	unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
 	if(data) {
 		GLenum format;
+
+		std::cout << "nrComponent: " << nrComponents << std::endl;
+
 		if(nrComponents == 1) {
-			format = GL_RED;
+			format = GL_LUMINANCE16;
 		}
 		else if(nrComponents == 3) {
 			format = GL_RGB;
@@ -157,6 +160,8 @@ unsigned int Model::TextureFromFile(const char *path, const std::string &directo
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		std::cout << "loaded texture: " << filename << std::endl;
 
 		stbi_image_free(data);
 	}

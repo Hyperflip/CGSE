@@ -64,7 +64,9 @@ void Mesh::Draw(Shader &shader) {
 		else if(name == "texture_specular")
 			number = std::to_string(specularNr++);
 
-		shader.setFloat(("material." + name + number).c_str(), i);
+		// IMPORTANT: this depends on the uniforms names in the shader
+		//shader.setFloat((name + number).c_str(), i);		<-- DOESN'T WORK
+		glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 	glActiveTexture(GL_TEXTURE0);

@@ -23,4 +23,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Ks -s 2.000000 2.000000 2.000000 specular2.tif
+map_Kd diffuse2.png
+map_Ks -s 2.000000 2.000000 2.000000 specular2.png
