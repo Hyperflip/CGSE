@@ -5,7 +5,7 @@ project(CGSE)
 # source files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
-set(SOURCES "${SRC_DIR}/main.cpp" ${SRC_DIR}/shader.h ${SRC_DIR}/shader.cpp ${SRC_DIR}/mesh.h ${SRC_DIR}/mesh.cpp)
+set(SOURCES "${SRC_DIR}/main.cpp" ${SRC_DIR}/shader.h ${SRC_DIR}/shader.cpp ${SRC_DIR}/mesh.h ${SRC_DIR}/mesh.cpp ${SRC_DIR}/model.cpp ${SRC_DIR}/model.h)
 
 # executable definition and properties
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -40,4 +40,17 @@ include_directories("${LIB_DIR}/stb_image")
 include_directories("${LIB_DIR}/camera")
 
 # assimp
-include_directories("/usr/local/include")
+find_package(assimp)
+set(ASSIMP_DIR "/usr/local/Cellar/assimp/5.0.1")
+
+# neccessary flags
+set(ZLIB_LIBRARIES zlibstatic)
+set(ENABLE_BOOST_WORKAROUND ON)
+set(BUILD_STATIC_LIB ON)
+set(BUILD_ASSIMP_TOOLS  ON)
+set(ASSIMP_BUILD_STATIC_LIB ON)
+
+include_directories("${ASSIMP_DIR}/include")
+target_link_libraries(${PROJECT_NAME} "${ASSIMP_DIR}/lib/libassimp.5.dylib")
+
+#message(STATUS "assimp dir: ${ASSIMP_LIB_DIR}")

@@ -15,10 +15,6 @@
 // standard libraries
 #include <iostream>
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 // callback function when viewport gets resized
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 // input handler

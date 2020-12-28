@@ -23,4 +23,4 @@ public:
     void setMat4(const std::string &name, glm::mat4 &value) const;
 };
 
-#endif SHADER_H
+#endif // SHADER_H

@@ -53,16 +53,13 @@ void Mesh::setupMesh() {
 
 void Mesh::Draw(Shader &shader) {
 	// this function assumes that a mesh can have multiples of each texture variant
-	unsigned int ambientNr = 1;
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
 	for(unsigned int i = 0; i < textures.size(); i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		std::string number;
 		std::string name = textures[i].type;
-		if(name == "texture_ambient")
-			number = std::to_string(ambientNr++);
-		else if(name == "texture_diffuse")
+		if(name == "texture_diffuse")
 			number = std::to_string(diffuseNr++);
 		else if(name == "texture_specular")
 			number = std::to_string(specularNr++);

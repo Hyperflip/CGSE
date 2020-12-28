@@ -16,6 +16,7 @@ struct Vertex {
 struct Texture {
 	unsigned int id;
 	std::string type;
+	std::string path;
 };
 
 class Mesh {
@@ -37,4 +38,4 @@ private:
 
 };
 
-#endif MESH_H
+#endif // MESH_H

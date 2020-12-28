@@ -1,0 +1,26 @@
+# Blender MTL File: 'donut.blend'
+# Material Count: 2
+
+newmtl Dough
+Ns 15.638428
+Ka 1.000000 1.000000 1.000000
+Kd 0.286262 0.165890 0.097498
+Ks 0.463636 0.463636 0.463636
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump -bm 2.300000 normal1.png
+map_Kd diffuse1.png
+map_Ks specular1.png
+
+newmtl Icing
+Ns 354.123998
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.088916 0.199210
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ks -s 2.000000 2.000000 2.000000 specular2.tif
