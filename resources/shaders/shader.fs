@@ -19,10 +19,10 @@ in vec2 TexCoord;
 uniform vec3 viewPos;
 uniform Light light;
 
+uniform float alpha;
+
 void main() {
     float shininess = 32;
-
-    vec3 test = texture(texture_specular1, TexCoord).rgb;
 
     // ambient
     vec3 ambient = light.ambient * texture(texture_diffuse1, TexCoord).rgb;
@@ -41,5 +41,5 @@ void main() {
 
     // vec3 result = ambient + diffuse + specular;
     vec3 result = ambient + diffuse + specular;
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, alpha);
 }

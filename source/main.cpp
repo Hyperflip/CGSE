@@ -100,7 +100,10 @@ int main() {
 	Shader lampShader("resources/shaders/lamp_shader.vs", "resources/shaders/lamp_shader.fs");
 
 	// model loading
-	Model ourModel("resources/models/donut/donut.obj");
+	std::vector<Model> models;
+	models.push_back(Model("resources/models/stillleben/stillleben_high.obj"));
+	models.push_back(Model("resources/models/stillleben/stillleben_medium.obj"));
+	models.push_back(Model("resources/models/stillleben/stillleben_low.obj"));
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -125,7 +128,7 @@ int main() {
         // rendering commands here:
 
         // clear colors:
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.85f, 0.85f, 0.85f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// shader needs to be activated before accessing its uniforms
@@ -136,12 +139,8 @@ int main() {
         shader.setVec3("light.diffuse", diffuseIntensity);
         shader.setVec3("light.specular", specularIntensity);
 		shader.setVec3("viewPos", camera.Position);
-		// material
-		//shader.setVec3("material.diffuse", diffuseColor);
-		//shader.setVec3("material.specular", specularColor);
-		//shader.setFloat("material.shininess", 32.0f);
 		// set alpha val
-		//shader.setFloat("alpha", alpha);
+		shader.setFloat("alpha", alpha);
 		// pass cam pos
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -150,10 +149,18 @@ int main() {
 		shader.setMat4("view", view);
 
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		shader.setMat4("model", model);
 
-		ourModel.Draw(shader);
+		float length = glm::length(camera.Position);
+		if(length < 1.5f) {
+			models[0].Draw(shader);
+		}
+		else if(length > 1.5f && length < 5.0f) {
+			models[1].Draw(shader);
+		}
+		else if(length > 5.0f) {
+			models[2].Draw(shader);
+		}
 
         // swap buffer and poll IO events
         glfwSwapBuffers(window);
