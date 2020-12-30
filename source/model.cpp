@@ -21,7 +21,9 @@ void Model::Draw(Shader &shader) {
 
 void Model::loadModel(std::string path) {
 	Assimp::Importer import;
-	const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	// important flag: aiProcess_CalcTangentSpace to generate fragment tangents needed for proper normal mapping
+	const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs |
+	aiProcess_CalcTangentSpace);
 
 	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
@@ -72,10 +74,15 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 			// assumption: only taking models with single set of coordinates per vertex, hence taking set 0
 			vec.x = mesh->mTextureCoords[0][i].x;
 			vec.y = mesh->mTextureCoords[0][i].y;
-			vertex.TexCoords = vec;
+			vertex.TexCoord = vec;
+			// tangent
+			vector.x = mesh->mTangents[i].x;
+			vector.y = mesh->mTangents[i].y;
+			vector.z = mesh->mTangents[i].y;
+			vertex.Tangent = vector;
 		}
 		else {
-			vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+			vertex.TexCoord = glm::vec2(0.0f, 0.0f);
 		}
 
 		vertices.push_back(vertex);
@@ -96,6 +103,9 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 		std::vector<Texture> specularMaps = loadMaterialTextures(material,
 																aiTextureType_SPECULAR, "texture_specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		std::vector<Texture> normalMaps = loadMaterialTextures(material,
+														 aiTextureType_HEIGHT, "texture_normal");
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 	}
 
 	return Mesh(vertices, indices, textures);
@@ -139,9 +149,6 @@ unsigned int Model::TextureFromFile(const char *path, const std::string &directo
 	unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
 	if(data) {
 		GLenum format;
-
-		std::cout << "nrComponent: " << nrComponents << std::endl;
-
 		if(nrComponents == 1) {
 			format = GL_LUMINANCE16;
 		}

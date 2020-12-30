@@ -44,7 +44,11 @@ void Mesh::setupMesh() {
 	// vertex texture coords
 	glEnableVertexAttribArray(2);	// location 2
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-					   (void*)offsetof(Vertex, TexCoords));
+					   (void*)offsetof(Vertex, TexCoord));
+	// vertex tangent normals
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+						  (void*)offsetof(Vertex, Tangent));
 
 	// unbind VAO
 	glBindVertexArray(0);
@@ -55,6 +59,7 @@ void Mesh::Draw(Shader &shader) {
 	// this function assumes that a mesh can have multiples of each texture variant
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
+	unsigned int normalNr = 1;
 	for(unsigned int i = 0; i < textures.size(); i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		std::string number;
@@ -63,6 +68,8 @@ void Mesh::Draw(Shader &shader) {
 			number = std::to_string(diffuseNr++);
 		else if(name == "texture_specular")
 			number = std::to_string(specularNr++);
+		else if(name == "texture_normal")
+			number = std::to_string(normalNr++);
 
 		// IMPORTANT: this depends on the uniforms names in the shader
 		//shader.setFloat((name + number).c_str(), i);		<-- DOESN'T WORK

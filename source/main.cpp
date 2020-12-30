@@ -78,7 +78,7 @@ int main() {
 	glfwSetScrollCallback(window, scroll_callback);
 
 	// tell GLFW to capture our mouse
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -134,10 +134,10 @@ int main() {
 		// shader needs to be activated before accessing its uniforms
         shader.use();
         // lighting
-        shader.setVec3("light.position", lightPos);
         shader.setVec3("light.ambient", ambientIntensity);
         shader.setVec3("light.diffuse", diffuseIntensity);
         shader.setVec3("light.specular", specularIntensity);
+		shader.setVec3("lightPos", lightPos);
 		shader.setVec3("viewPos", camera.Position);
 		// set alpha val
 		shader.setFloat("alpha", alpha);

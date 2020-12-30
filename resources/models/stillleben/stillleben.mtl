@@ -12,6 +12,7 @@ d 1.000000
 illum 2
 map_Kd FruitAppleGala001_COL_1K.jpg
 map_Ks FruitAppleGala001_REFL_1K.jpg
+map_bump FruitAppleGala001_NRM_1K.png
 
 newmtl FruitAppleGrannySmith001_1K
 Ns 225.000000
@@ -24,6 +25,7 @@ d 1.000000
 illum 2
 map_Kd FruitAppleGrannySmith001_COL_1K.jpg
 map_Ks FruitAppleGrannySmith001_REFL_1K.jpg
+map_bump FruitAppleGrannySmith001_NRM_1K.png
 
 newmtl FruitAppleRedDelicious001_1K
 Ns 225.000000
@@ -36,6 +38,7 @@ d 1.000000
 illum 2
 map_Kd FruitAppleRedDelicious001_COL_1K.jpg
 map_Ks FruitAppleRedDelicious001_REFL_1K.jpg
+map_bump FruitAppleRedDelicious001_NRM_1K.png
 
 newmtl FruitBowlWooden001_2K
 Ns 225.000000
@@ -48,3 +51,4 @@ d 1.000000
 illum 2
 map_Kd FruitBowlWooden001_COL_2K.jpg
 map_Ks FruitBowlWooden001_REFL_2K.jpg
+map_bump FruitBowlWooden001_NRM_2K.jpg
