@@ -15,6 +15,8 @@
 // standard libraries
 #include <iostream>
 
+// SOURCE: https://learnopengl.com/
+
 // callback function when viewport gets resized
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 // input handler
